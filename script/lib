@@ -1,0 +1,45 @@
+#!/usr/bin/env bash
+
+create () {
+  az account set --subscription "${SUBSCRIPTION}"
+  echo "Subscription set to `az account show  --query 'name' --output tsv`"
+  USER=$(az account show --query 'user.name' --output tsv)
+  
+  RG_EXISTS=$(az group exists --name ${RESOURCE_GROUP})
+	echo ${RG_EXISTS}
+  if [[ $RG_EXISTS = "true" ]]
+  then
+    echo "Resource group ${RESOURCE_GROUP} already exists - aborting"
+    return 1
+  fi
+  echo "Creating ${RESOURCE_GROUP}"
+  az group create --location eastus --name ${RESOURCE_GROUP} --query 'properties.provisioningState'
+
+  VM_OUT=$(az vm create \
+    --resource-group ${RESOURCE_GROUP} \
+    --name ${VM_NAME} \
+    --location eastus \
+    --image UbuntuLTS \
+    --admin-username azureuser \
+    --generate-ssh-keys \
+    --custom-data cloud-init.txt \
+    --tags createdBy=${USER} createdOn=$(date -u +"%Y-%m-%dT%H:%M:%SZ"))
+
+    SSH_CMD=("ssh azureuser@$(echo ${VM_OUT} | jq '.publicIpAddress' -r)")
+    echo ${SSH_CMD}
+    ${SSH_CMD}
+    # echo ${VM_OUT}
+}
+
+get_account_list () {
+  az account list --all --query '[].name' --output tsv
+}
+
+destroy () {
+  az group delete --name ${RESOURCE_GROUP}
+}
+
+test () {
+  VM_OUT=$(echo this is a test $(date -u +"%Y-%m-%dT%H:%M:%SZ"))
+  echo $VM_OUT
+}
