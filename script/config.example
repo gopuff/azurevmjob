@@ -1,3 +1,7 @@
 SUBSCRIPTION=Development
-JOB_NAME=aaron_test
 APP_NAME=aaron_vm_test
+VM_SIZE=Standard_B2ms
+VNET_RESOURCE_GROUP=MyMainRG
+VNET_NAME=MyVNET
+VNET_SUBNET=MySubnet
+SKIP_RG_CHECK=true

@@ -1,7 +1,10 @@
 #!/usr/bin/env bash
 set -e
+# for watching the command uncomment below
+set -x 
+SCRIPT_DIR=`dirname "$0":`
 
-. "./lib"
+. "${SCRIPT_DIR}/lib"
 
 cli_help() {
   cli_name=${0##*/}
@@ -11,13 +14,14 @@ $cli_name
 Commands:
   account a :=> list subscriptions
 	deploy  d :=> Deploy a new vm
+  list-sizes l :=> List the size vms available
   *         Help
 "
   exit 1
 }
 
 # cli_log "Exporting config ..."
-source ./config
+source "${SCRIPT_DIR}/config"
 VM_NAME="vm_${APP_NAME}"
 RESOURCE_GROUP="rg_${APP_NAME}"
 
@@ -33,6 +37,12 @@ case "$1" in
     ;;
   test|t)
     test
+    ;;
+  list-sizes|l)
+    list_sizes
+    ;;
+  get-subnet-id)
+    get_subnet_id
     ;;
   *)
     cli_help

@@ -21,3 +21,14 @@ Destroy the vm and resource group
 cd scripts
 ./setup_vm.sh destroy
 ```
+
+## Configuration Options
+SUBSCRIPTION=Development
+APP_NAME=aaron_vm_test
+VM_SIZE=Standard_B2ms
+VNET_RESOURCE_GROUP=MyMainRG
+VNET_NAME=MyVNET
+VNET_SUBNET=MySubnet
+
+`SKIP_RG_CHECK=true`
+The create script will fail if called for an existing VM.  Setting this to true will execute the vm create command against an existing RG
