@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -e
 # for watching the command uncomment below
-set -x 
+# set -x 
 SCRIPT_DIR=`dirname "$0":`
 
 . "${SCRIPT_DIR}/lib"
@@ -23,7 +23,7 @@ Commands:
 # cli_log "Exporting config ..."
 source "${SCRIPT_DIR}/config"
 VM_NAME="vm_${APP_NAME}"
-RESOURCE_GROUP="rg_${APP_NAME}"
+RESOURCE_GROUP="rg_${APP_NAME}_tmp_job_vm"
 
 case "$1" in
   accounts|a)
@@ -43,39 +43,19 @@ case "$1" in
     ;;
   get-subnet-id)
     get_subnet_id
+    echo $SUBNET_ID
+    ;;
+  ssh|s)
+    ssh_to_last_created
+    ;;
+  scp)
+    scp_job_dir
     ;;
   *)
     cli_help
     ;;
 esac
 
-
-
-# subscription_list:
-# 	echo "You have access to the following subscriptions\n"
-# 	az account list --all --query '[].name' --output tsv
-
-# subscription_set:
-# 	az account set --subscription "${SUBSCRIPTION}"
-# 	echo "Subscription set to `az account show  --query 'name' --output tsv`"
-
-# RG_EXISTS=$(shell az group exists --name ${RESOURCE_GROUP})
-# resource_group_create:
-# 	echo ${RESOURCE_GROUP}
-	
-# 	echo ${RG_EXISTS}
-# 	ifeq (${RG_EXISTS}, true)
-# 		echo "Resource Group ${RESOURCE_GROUP} already exists"
-# 	else
-# 		az group create --location ${LOCATION} --name ${RESOURCE_GROUP} --query "properties.provisioningState"
-
-# default: 
-# 	echo ${JOB_NAME}_${LOCATION}
-
-
-# az account list --all --query '[?isDefault].join(`  `, [`default: `, name,`[`, id, `]`]) | [0]'
-
-# az group create --location eastus --name rg-aaron-vm-eastus 
 
 # az extension add -n application-insights
 
@@ -84,31 +64,11 @@ esac
 #   --location eastus \
 #   --resource-group rg-aaron-vm-eastus 
 
-#   "InstrumentationKey=7185f132-6332-4a03-805d-5c38e231b919;IngestionEndpoint=https://eastus-3.in.applicationinsights.azure.com/",
-
 #   az monitor app-insights component show \
 #   --app aaronVMTest \
 #   --resource-group rg-aaron-vm-eastus \
 #   | jq '[.connectionString, .instrumentationKey]'
 
-
-# az vm create \
-#   --resource-group rg-aaron-vm-eastus \
-#   --name demo-vm \
-#   --location eastus \
-#   --image UbuntuLTS \
-#   --admin-username azureuser \
-#   --generate-ssh-keys \
-#   --custom-data cloud-init.txt \ 
-#   --tags createdBy=$user 
-
-#    "52.255.202.166",
-
-
-#   ssh 52.255.202.166
-
 # az monitor app-insights events show \
 #     --resource-group rg-aaron-vm-eastus \
 #     --app aaronVMTest --type traces
-
-#     az group delete --name rg-aaron-vm-eastus -y

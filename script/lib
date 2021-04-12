@@ -6,8 +6,8 @@ create () {
   USER=$(az account show --query 'user.name' --output tsv)
   
   RG_EXISTS=$(az group exists --name ${RESOURCE_GROUP})
-	echo ${RG_EXISTS}
-  if [ $RG_EXISTS = "true" ] && [$SKIP_RG_CHECK <> "true"]
+	# echo ${RG_EXISTS}
+  if [ $RG_EXISTS = "true" ] && [$SKIP_RG_CHECK != "true"]
   then
     echo "Resource group ${RESOURCE_GROUP} already exists - aborting"
     return 1
@@ -24,20 +24,23 @@ create () {
     --image UbuntuLTS \
     --admin-username azureuser \
     --generate-ssh-keys \
-    --custom-data cloud-init.txt \
+    --custom-data "${SCRIPT_DIR}/cloud-init.txt" \
     --public-ip-address "" \
     --size ${VM_SIZE} \
     --subnet ${SUBNET_ID} \
     --tags createdBy=${USER} createdOn=$(date -u +"%Y-%m-%dT%H:%M:%SZ"))
 
     VM_IP=$(echo ${VM_OUT} | jq '.privateIpAddress' -r)
-    echo ${VM_IP}
+    echo "Private IP is: ${VM_IP}"
     rm -f config.vmip
-    echo "VM_IP=${VM_IP}" > config.vmip
-
+    echo "VM_IP=${VM_IP}" > "${SCRIPT_DIR}/config.vmip"
+    
+    #copy the job folder
+    scp_job_dir
+    
     SSH_CMD=("ssh azureuser@$(echo ${VM_OUT} | jq '.privateIpAddress' -r)")
     echo ${SSH_CMD}
-    # ${SSH_CMD}
+    ${SSH_CMD}
     echo ${VM_OUT}
 }
 
@@ -52,7 +55,6 @@ destroy () {
 list_sizes () {
   open "https://docs.microsoft.com/en-us/azure/virtual-machines/sizes"
   az vm list-sizes --location eastus --query '[].[numberOfCores, memoryInMb,  name]' -o tsv | sort -n | less
-
 }
 
 test () {
@@ -60,7 +62,19 @@ test () {
   echo $VM_OUT
 }
 
+ssh_to_last_created () {
+  . "${SCRIPT_DIR}/config.vmip"
+  ssh "azureuser@${VM_IP}"
+}
+
+scp_job_dir () {
+  . "${SCRIPT_DIR}/config.vmip"
+  scp -r "${SCRIPT_DIR}/../job" "azureuser@${VM_IP}:job"
+}
+
+# 
+ 
 get_subnet_id () {
   SUBNET_ID=$(az network vnet subnet show --resource-group ${VNET_RESOURCE_GROUP} --name ${VNET_SUBNET} --vnet-name ${VNET_NAME} --query 'id' -o tsv)
-  echo $SUBNET_ID
+  # echo $SUBNET_ID
 }

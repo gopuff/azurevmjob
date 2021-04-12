@@ -1,0 +1,16 @@
+{
+  "name": "azuredatarecovery",
+  "version": "1.0.0",
+  "scripts": {
+    "test": "echo \"No tests yet...\""
+  },
+  "dependencies": {
+    "@azure/cosmos": "^3.10.5",
+    "aws-sdk": "^2.879.0",
+    "moment": "^2.29.1",
+    "standard": "^16.0.3",
+    "uuid": "^8.3.2"
+  },
+  "devDependencies": {},
+  "main": "index.js"
+}

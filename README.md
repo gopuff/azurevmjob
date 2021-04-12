@@ -1,34 +1,75 @@
 # Quick Azure VM creation
 
-sometimes we need a quick linux vm running in our vnets to test something.
+Sometimes we need a quick linux vm running in our vnets to test something.
 
-This rep is in an early state, but I want it to have a node or python job
-boilerplate that gets secrets from az vault.
+This repo is in an early state, currently this will
+1. Create a new resource group using app name and ending in `_tmp_job_vm`
+2. Create a new linux vm with node14 in an existing vnet
+3. scp the job folder to the new vm
+4. ssh into the new vm
+5. DESTORY the vm and resouce group when you are done
 
-Right now you can create and destroy a VM in a public space
+## Installation
+- you must have the `az cli` [installed](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli) with suffiencient permissions to create resources
+- copy `scripts/config.example` to `scripts/config` and fill it out
+- The `az vm create` command will either use your existing public keys in `~/.ssh` or generate a new keypair.  
 
-To create a VM with a new resource group
-
-copy `scripts/config.example` to `scripts/config` and fill it out
+*Note*: When you ssh this server will be added to your 'known hosts' file with a fingerprint.  If you generate another server and get the same IP, ssh will throw an error.  You need to delete the old entry from `.ssh/known_hosts`
 
 ```
-cd scripts
-./setup_vm.sh create
+# create a new VM
+$ ./script/setup_vm.sh create
+
+
+# Destroy the vm and resource group
+$ ./script/setup_vm.sh destroy
+
+# ssh into the new vm
+$ ./script/setup_vm.sh ssh
+
+# copy the local jobs folder to the new vm (it will copy automatically after create)
+$ ./script/setup_vm.sh scp
+
 ```
 
-Destroy the vm and resource group
+## Configuration
+Make a copy of `script/config.example` and save it as `script/config`
+
+- SUBSCRIPTION="Development"
+The name of the subscription to use.  If you are unsure of what you have access to run
+```./script/setup_vm.sh accounts```
+
+- APP_NAME=aaron_vm_test
+APP_Name is the base name of the resources you will create.  Should not matter much, because this vm won't be around long....
+
+- VM_SIZE=Standard_B2ms
+The size of the VM to create.  'B' instances are cheap and good for experiments, but the 'D' ones have more power.  In case you don't have this memorized, you can run
+```./script/setup_vm.sh list-sizes```
+
+- VNET_RESOURCE_GROUP=MyMainRG
+The resource group that the VNET lives in.  This is a bit confusing.  We will be creating a new resource group for your server, but that will be destroyed when we are done.  The VNET sticks around.
+
+- VNET_NAME=MyVNET
+The name of the vnet to use (the one that lives in the above resource group)
+
+- VNET_SUBNET=MySubnet
+The name of the subnet to deploy the vm into (the subnet in VNET_NAME)
+
+- SKIP_RG_CHECK=true
+If this is not set then the script will fail the second time you try to create a vm that already exists. You may want to run `az vm create` a second time, so if you do - use this option.
+
+## Sample job
+The sample job spins up a few workers to batch a bunch of cosmos data to kinesis.  If you want to run it, you to set some environmental variables.  I recommend a .env file and either the `dotenv` package or something like.
+
 ```
-cd scripts
-./setup_vm.sh destroy
+# Run a serial job
+export $(cat .env | xargs)  && node index.js
+
+#run concurrent batches
+export $(cat .env | xargs)  && node runParallel.js
 ```
 
-## Configuration Options
-SUBSCRIPTION=Development
-APP_NAME=aaron_vm_test
-VM_SIZE=Standard_B2ms
-VNET_RESOURCE_GROUP=MyMainRG
-VNET_NAME=MyVNET
-VNET_SUBNET=MySubnet
+## Todo
+[] Setup application insights and inject it into the vm
 
-`SKIP_RG_CHECK=true`
-The create script will fail if called for an existing VM.  Setting this to true will execute the vm create command against an existing RG
+[] use azvalult and a managed identity to get secrets

@@ -1,3 +1,4 @@
 script/config
 config.vmip
 notes.txt
+**/.env
