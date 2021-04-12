@@ -38,7 +38,7 @@ create () {
     #copy the job folder
     scp_job_dir
     
-    SSH_CMD=("ssh azureuser@$(echo ${VM_OUT} | jq '.privateIpAddress' -r)")
+    SSH_CMD=("ssh -o StrictHostKeyChecking=no azureuser@$(echo ${VM_OUT} | jq '.privateIpAddress' -r)")
     echo ${SSH_CMD}
     ${SSH_CMD}
     echo ${VM_OUT}
@@ -49,6 +49,10 @@ get_account_list () {
 }
 
 destroy () {
+  echo ""
+  echo ""
+  echo "About to destroy ${RESOURCE_GROUP}"
+  echo ""
   az group delete --name ${RESOURCE_GROUP}
 }
 
@@ -64,7 +68,7 @@ test () {
 
 ssh_to_last_created () {
   . "${SCRIPT_DIR}/config.vmip"
-  ssh "azureuser@${VM_IP}"
+  ssh -o StrictHostKeyChecking=no  "azureuser@${VM_IP}"
 }
 
 scp_job_dir () {

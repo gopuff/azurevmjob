@@ -1,7 +1,7 @@
-SUBSCRIPTION=Development
+SUBSCRIPTION="Catalog, Search & Recs"
 APP_NAME=aaron_vm_test
 VM_SIZE=Standard_B2ms
-VNET_RESOURCE_GROUP=MyMainRG
-VNET_NAME=MyVNET
-VNET_SUBNET=MySubnet
-SKIP_RG_CHECK=true
+VNET_RESOURCE_GROUP=rg-aaron-dev-eastus
+VNET_NAME=vnet-aaron-dev-eastus
+VNET_SUBNET=sn-virtualmachines
+SKIP_RG_CHECK=false

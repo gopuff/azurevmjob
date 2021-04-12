@@ -3,11 +3,13 @@
 Sometimes we need a quick linux vm running in our vnets to test something.
 
 This repo is in an early state, currently this will
-1. Create a new resource group using app name and ending in `_tmp_job_vm`
-2. Create a new linux vm with node14 in an existing vnet
-3. scp the job folder to the new vm
-4. ssh into the new vm
-5. DESTORY the vm and resouce group when you are done
+1. Create a new resource group using app name
+2. Create a new linux vm with node14 in an existing vnet (using a private ip, so VPN is required, and you can access cosmosDB)
+3. `scp` the job folder to the new vm
+4. `ssh` into the new vm
+5. DESTORY the vm and resouce group when you are done. (which takes longer then create)
+
+![Demo](demo.gif)
 
 ## Installation
 - you must have the `az cli` [installed](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli) with suffiencient permissions to create resources
@@ -20,6 +22,7 @@ This repo is in an early state, currently this will
 # create a new VM
 $ ./script/setup_vm.sh create
 
+# Note: you will be logged in right away, but the cloud-init takes a few minutes to get node installed.
 
 # Destroy the vm and resource group
 $ ./script/setup_vm.sh destroy
@@ -47,7 +50,9 @@ The size of the VM to create.  'B' instances are cheap and good for experiments,
 ```./script/setup_vm.sh list-sizes```
 
 - VNET_RESOURCE_GROUP=MyMainRG
-The resource group that the VNET lives in.  This is a bit confusing.  We will be creating a new resource group for your server, but that will be destroyed when we are done.  The VNET sticks around.
+The resource group that the VNET lives in. Please check with the infrastructure teams to get the right VNET information!
+
+  Referencing 2 different resource groups is a bit confusing.  We will be creating a new resource group for your server, but using a vnet from an existing resource group.  Your resource group destroyed when we are done.  The VNET resource group sticks around.
 
 - VNET_NAME=MyVNET
 The name of the vnet to use (the one that lives in the above resource group)
@@ -55,17 +60,19 @@ The name of the vnet to use (the one that lives in the above resource group)
 - VNET_SUBNET=MySubnet
 The name of the subnet to deploy the vm into (the subnet in VNET_NAME)
 
-- SKIP_RG_CHECK=true
-If this is not set then the script will fail the second time you try to create a vm that already exists. You may want to run `az vm create` a second time, so if you do - use this option.
+- SKIP_RG_CHECK=false
+If this is not set to true then the script will fail the second time you try to create a vm that already exists. You may want to run `az vm create` a second time, so if you do - use this option.
 
 ## Sample job
 The sample job spins up a few workers to batch a bunch of cosmos data to kinesis.  If you want to run it, you to set some environmental variables.  I recommend a .env file and either the `dotenv` package or something like.
 
 ```
 # Run a serial job
+npm i
 export $(cat .env | xargs)  && node index.js
 
 #run concurrent batches
+npm i
 export $(cat .env | xargs)  && node runParallel.js
 ```
 
